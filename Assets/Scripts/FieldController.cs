@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class FieldController : MonoBehaviour
 {
@@ -14,8 +15,8 @@ public class FieldController : MonoBehaviour
 	}
 
 	public int side = 3;
-	
 	public HexCell cellPrefab;
+	public Spaceman spacemanPrefab;
 	public Canvas canvas;
 	
 
@@ -63,6 +64,8 @@ public class FieldController : MonoBehaviour
 				}
 			}
 		}
+
+		_field[5, 5].addSpacemnan(spacemanPrefab);
 
 		int i = 1 + 2;
 	}
