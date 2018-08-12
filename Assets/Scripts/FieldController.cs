@@ -42,9 +42,9 @@ public class FieldController : MonoBehaviour
 		
 		RectTransform canvasRect = canvas.GetComponent<RectTransform>();
 
-		float fieldSide = canvasRect.rect.width;
+		float fieldSide = canvasRect.rect.height;
 		
-		float hexHeight = (1.5f * side - 0.5f) * (_hexMetrics.outerRadius * 2);
+		float hexHeight = (side + 0.5f) * (_hexMetrics.innerRadius * 2f);
 		float scale = fieldSide / hexHeight;
 		canvas.GetComponent<CanvasScaler>().scaleFactor = scale;
 		
@@ -52,7 +52,7 @@ public class FieldController : MonoBehaviour
 		baseTransform.x = - canvasRect.rect.width / 2 / scale;
 		baseTransform.y = - canvasRect.rect.height / 2 / scale;
 
-		int width = side * 2 - 1;
+		int width = side;
 		int height = width * 2;
 		_field = new HexCell[width, height];
 		
