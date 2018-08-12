@@ -1,59 +1,49 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 public class FieldController : MonoBehaviour
 {
 	private struct HexMetrics
 	{
-		public float innerRadius;
-		public float outerRadius;
+		public float InnerRadius;
+		public float OuterRadius;
 	}
 
-	private List<HexCell> cellsForBonus = new List<HexCell>();
+	private readonly List<HexCell> _cellsForBonus = new List<HexCell>();
 	private List<HexCell>[] directionEdgeCells = new List<HexCell>[(int) HexCell.Directions.Size];
-	private List<HexCell> destroyebleCells = new List<HexCell>();
-	private List<HexCell> cellsForSpawn = new List<HexCell>();
+	private readonly List<HexCell> _destroyebleCells = new List<HexCell>();
+	private readonly List<HexCell> _cellsForSpawn = new List<HexCell>();
 
-	public int side = 3;
-	public HexCell cellPrefab;
-	public Spaceman spacemanPrefab;
-	public Hamster hamsterPrefab;
-	public Canvas canvas;
+	public int Side = 3;
+	public HexCell CellPrefab;
+	public Spaceman SpacemanPrefab;
+	public Hamster HamsterPrefab;
+	public Canvas Canvas;
 	
-
 	private HexMetrics _hexMetrics;
 	private HexCell[,] _field;
 
-	private void Awake()
-	{
-		
-	}
-
 	// Use this for initialization
 	void Start () {
-		RectTransform cellRect = cellPrefab.GetComponent<RectTransform>();
-		_hexMetrics.innerRadius = cellRect.rect.height / 2f;
-		_hexMetrics.outerRadius = cellRect.rect.width / 2f;
+		var cellRect = CellPrefab.GetComponent<RectTransform>();
+		_hexMetrics.InnerRadius = cellRect.rect.height / 2f;
+		_hexMetrics.OuterRadius = cellRect.rect.width / 2f;
 		
-		RectTransform canvasRect = canvas.GetComponent<RectTransform>();
+		var canvasRect = Canvas.GetComponent<RectTransform>();
 
-		float fieldSide = canvasRect.rect.height;
+		var fieldSide = canvasRect.rect.height;
 		
-		float hexHeight = (side + 0.5f) * (_hexMetrics.innerRadius * 2f);
-		float scale = fieldSide / hexHeight;
-		canvas.GetComponent<CanvasScaler>().scaleFactor = scale;
+		var hexHeight = (Side + 0.5f) * (_hexMetrics.InnerRadius * 2f);
+		var scale = fieldSide / hexHeight;
+		Canvas.GetComponent<CanvasScaler>().scaleFactor = scale;
 		
-		Vector2 baseTransform = new Vector2();
+		var baseTransform = new Vector2();
 		baseTransform.x = - canvasRect.rect.width / 2 / scale;
 		baseTransform.y = - canvasRect.rect.height / 2 / scale;
 
-		int width = side;
-		int height = width * 2;
+		var width = Side;
+		var height = width * 2;
 		_field = new HexCell[width, height];
 		
 		for(int level = 0; level < width; level++)
@@ -61,7 +51,7 @@ public class FieldController : MonoBehaviour
 			int validRowNumber = 0;
 			for (int idx = 0; idx < height; idx++)
 			{
-				HexCell cell = createCell(baseTransform, level, idx);
+				HexCell cell = CreateCell(baseTransform, level, idx);
 				if (cell != null)
 				{
 					cell.SetIj(this, _field, level, validRowNumber);
@@ -71,78 +61,68 @@ public class FieldController : MonoBehaviour
 			}
 		}
 
-		Hamster hamster = Instantiate(hamsterPrefab);
+		var hamster = Instantiate(HamsterPrefab);
 		_field[5, 5].SpawnHamster(hamster);
-
-		int i = 1 + 2;
 	}
 
-	private HexCell createCell(Vector2 baseTransform, int i, int j)
+	private HexCell CreateCell(Vector2 baseTransform, int i, int j)
 	{
-		if (i % 2 == j % 2)
-		{
-			Vector3 position = new Vector3(baseTransform.x, baseTransform.y);
-			position.x += (i  / 2f * 3f + 1) * _hexMetrics.outerRadius;
-			position.y += (j + 1) * _hexMetrics.innerRadius;
+		if (i % 2 != j % 2) return null;
+		
+		var position = new Vector3(baseTransform.x, baseTransform.y);
+		position.x += (i  / 2f * 3f + 1) * _hexMetrics.OuterRadius;
+		position.y += (j + 1) * _hexMetrics.InnerRadius;
 
-			HexCell cell = Instantiate<HexCell>(cellPrefab);
-			cell.transform.SetParent(transform, false);
-			cell.transform.localPosition = position;
-			return cell;
-		}
-
-		return null;
+		var cell = Instantiate(CellPrefab);
+		cell.transform.SetParent(transform, false);
+		cell.transform.localPosition = position;
+		return cell;
 	}
 
-	public void cellAdded(HexCell cell)
+	public void CellAdded(HexCell cell)
 	{
-		cellsForBonus.Add(cell);
-	    cellsForSpawn.Add(cell);
+		_cellsForBonus.Add(cell);
+	    _cellsForSpawn.Add(cell);
 	}
 
-	public void cellBonusSpawned(HexCell cell)
+	public void CellBonusSpawned(HexCell cell)
 	{
-		cellsForBonus.Remove(cell);
+		_cellsForBonus.Remove(cell);
 	}
 
-	public void cellHamsterSpawend(HexCell cell)
+	public void CellHamsterSpawend(HexCell cell)
 	{
-		cellsForSpawn.Remove(cell);
+		_cellsForSpawn.Remove(cell);
 	}
 
-	public void cellDestroyed(HexCell cell)
+	public void CellDestroyed(HexCell cell)
 	{
-		cellsForBonus.Remove(cell);
-		cellsForSpawn.Remove(cell);
-		destroyebleCells.Remove(cell);
-		for (int i = 0; i < (int) HexCell.Directions.Size; i++)
+		_cellsForBonus.Remove(cell);
+		_cellsForSpawn.Remove(cell);
+		_destroyebleCells.Remove(cell);
+		for (var i = 0; i < (int) HexCell.Directions.Size; i++)
 		{
 			directionEdgeCells[i].Remove(cell);
 		}
 	}
 
-	public void cellBecameDirectionEdge(HexCell cell, HexCell.Directions direction)
+	public void СellBecameDirectionEdge(HexCell cell, HexCell.Directions direction)
 	{
 		directionEdgeCells[(int) direction].Add(cell);
 	}
 
-	public void cellBecameDestroyeble(HexCell cell)
+	public void СellBecameDestroyeble(HexCell cell)
 	{
-		destroyebleCells.Add(cell);
+		_destroyebleCells.Add(cell);
 	}
 
-	public void cellHamsterLeft(HexCell hexCell)
+	public void CellHamsterLeft(HexCell hexCell)
 	{
-		cellsForSpawn.Add(hexCell);
+		_cellsForSpawn.Add(hexCell);
 	}
 
-	public void cellBonusLeft(HexCell hexCell)
+	public void CellBonusLeft(HexCell hexCell)
 	{
-		cellsForBonus.Add(hexCell);
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
+		_cellsForBonus.Add(hexCell);
 	}
 }

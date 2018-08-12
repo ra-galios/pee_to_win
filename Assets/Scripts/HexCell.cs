@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml;
-using JetBrains.Annotations;
+﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,20 +10,10 @@ public class HexCell : MonoBehaviour
 	}
 	
 	private int _i, _j;
-	private HexCell[] _neighbours = new HexCell[(int)Directions.Size];
+	private readonly HexCell[] _neighbours = new HexCell[(int)Directions.Size];
 	private Spaceman _spaceman;
 	private Hamster _hamster;
 	private FieldController _fieldController;
-	
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 
 	public void SetIj(FieldController fieldController, HexCell[,] field, int i, int j)
 	{
@@ -35,7 +21,7 @@ public class HexCell : MonoBehaviour
 		
 		_i = i;
 		_j = j;
-		_fieldController.cellAdded(this);
+		_fieldController.CellAdded(this);
 
 		for (var d = 0; d < (int) Directions.Size; d++)
 		{
@@ -160,14 +146,14 @@ public class HexCell : MonoBehaviour
 		}
 	}	
 
-	protected void remove(HexCell neighbour)
+	protected void Remove(HexCell neighbour)
 	{
 		if (neighbour != null && _neighbours.Contains(neighbour))
 		{
 			Directions direction = DesideNbr(neighbour);
 			_neighbours[(int) direction] = null;
-			neighbour.remove(this);
-			_fieldController.cellDestroyed(this);
+			neighbour.Remove(this);
+			_fieldController.CellDestroyed(this);
 		}
 	}
 
@@ -179,7 +165,7 @@ public class HexCell : MonoBehaviour
 			_spaceman = Instantiate(spaceman);
 			_spaceman.transform.SetParent(transform);
 			_spaceman.transform.localPosition = pos;
-			_fieldController.cellBonusSpawned(this);
+			_fieldController.CellBonusSpawned(this);
 		}
 	}
 
@@ -191,15 +177,15 @@ public class HexCell : MonoBehaviour
 	public void SpawnHamster(Hamster hamster)
 	{
 		_hamster = hamster;
-		hamster.setCell(this);
-		_fieldController.cellHamsterSpawend(this);
+		hamster.SetCell(this);
+		_fieldController.CellHamsterSpawend(this);
 	}
 
 	public void HamsterLeft()
 	{
-		_fieldController.cellAdded(this);
+		_fieldController.CellAdded(this);
 		_hamster.transform.SetParent(null);
-		_hamster.setCell(null);
+		_hamster.SetCell(null);
 		_hamster = null;
 	}
 	
