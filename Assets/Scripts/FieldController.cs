@@ -14,9 +14,15 @@ public class FieldController : MonoBehaviour
 		public float outerRadius;
 	}
 
+	private List<HexCell> cellsForBonus = new List<HexCell>();
+	private List<HexCell>[] directionEdgeCells = new List<HexCell>[(int) HexCell.Directions.Size];
+	private List<HexCell> destroyebleCells = new List<HexCell>();
+	private List<HexCell> cellsForSpawn = new List<HexCell>();
+
 	public int side = 3;
 	public HexCell cellPrefab;
 	public Spaceman spacemanPrefab;
+	public Hamster hamsterPrefab;
 	public Canvas canvas;
 	
 
@@ -58,14 +64,15 @@ public class FieldController : MonoBehaviour
 				HexCell cell = createCell(baseTransform, level, idx);
 				if (cell != null)
 				{
-					cell.setIJ(_field, level, validRowNumber);
+					cell.SetIj(this, _field, level, validRowNumber);
 					_field[level, validRowNumber] = cell;
 					validRowNumber++;
 				}
 			}
 		}
 
-		_field[5, 5].addSpacemnan(spacemanPrefab);
+		Hamster hamster = Instantiate(hamsterPrefab);
+		_field[5, 5].SpawnHamster(hamster);
 
 		int i = 1 + 2;
 	}
@@ -86,11 +93,56 @@ public class FieldController : MonoBehaviour
 
 		return null;
 	}
+
+	public void cellAdded(HexCell cell)
+	{
+		cellsForBonus.Add(cell);
+	    cellsForSpawn.Add(cell);
+	}
+
+	public void cellBonusSpawned(HexCell cell)
+	{
+		cellsForBonus.Remove(cell);
+	}
+
+	public void cellHamsterSpawend(HexCell cell)
+	{
+		cellsForSpawn.Remove(cell);
+	}
+
+	public void cellDestroyed(HexCell cell)
+	{
+		cellsForBonus.Remove(cell);
+		cellsForSpawn.Remove(cell);
+		destroyebleCells.Remove(cell);
+		for (int i = 0; i < (int) HexCell.Directions.Size; i++)
+		{
+			directionEdgeCells[i].Remove(cell);
+		}
+	}
+
+	public void cellBecameDirectionEdge(HexCell cell, HexCell.Directions direction)
+	{
+		directionEdgeCells[(int) direction].Add(cell);
+	}
+
+	public void cellBecameDestroyeble(HexCell cell)
+	{
+		destroyebleCells.Add(cell);
+	}
+
+	public void cellHamsterLeft(HexCell hexCell)
+	{
+		cellsForSpawn.Add(hexCell);
+	}
+
+	public void cellBonusLeft(HexCell hexCell)
+	{
+		cellsForBonus.Add(hexCell);
+	}
 	
 	// Update is called once per frame
 	void Update () {
 		
 	}
-	
-	
 }

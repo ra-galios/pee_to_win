@@ -8,14 +8,16 @@ using UnityEngine.UI;
 
 public class HexCell : MonoBehaviour
 {
-	protected enum NBRS
+	public enum Directions
 	{
-		TOP,TOPRIGHT,BOTRIGHT,BOT,BOTLEFT,TOPLEFT,SIZE,INVALID
+		Top,Topright,Botright,Bot,Botleft,Topleft,Size,Invalid
 	}
 	
 	private int _i, _j;
-	private HexCell[] _neighbours = new HexCell[(int)NBRS.SIZE];
+	private HexCell[] _neighbours = new HexCell[(int)Directions.Size];
 	private Spaceman _spaceman;
+	private Hamster _hamster;
+	private FieldController _fieldController;
 	
 	// Use this for initialization
 	void Start () {
@@ -27,23 +29,23 @@ public class HexCell : MonoBehaviour
 		
 	}
 
-	public void setIJ(HexCell[,] field, int i, int j)
+	public void SetIj(FieldController fieldController, HexCell[,] field, int i, int j)
 	{
-		this._i = i;
-		this._j = j;
+		_fieldController = fieldController;
+		
+		_i = i;
+		_j = j;
+		_fieldController.cellAdded(this);
 
-		for (int d = 0; d < (int) NBRS.SIZE; d++)
+		for (var d = 0; d < (int) Directions.Size; d++)
 		{
-			Vector2 nbrPos = desideIJ((NBRS) d);
-			if (nbrPos.x >= 0 && nbrPos.x < field.Rank)
+			Vector2 nbrPos = DesideIj((Directions) d);
+			if (nbrPos.x >= 0 && nbrPos.x < field.GetLength(0))
 			{
-				if (nbrPos.y >= 0 && nbrPos.y < field.GetLength((int) nbrPos.x))
+				if (nbrPos.y >= 0 && nbrPos.y < field.GetLength(1))
 				{
 					HexCell cell = field[(int) nbrPos.x, (int) nbrPos.y];
-					if (cell != null)
-					{
-						cell.addNeighbour(this);
-					}
+					AddNeighbour(cell);
 				}
 			}
 		}
@@ -51,35 +53,35 @@ public class HexCell : MonoBehaviour
 		transform.GetChild(0).gameObject.GetComponent<Text>().text = i + ";" + j;
 	}
 
-	protected Vector2 desideIJ(NBRS direction)
+	private Vector2 DesideIj(Directions direction)
 	{
-		Vector2 ret = new Vector2(-1, -1);
-		int top = _j + _i % 2;
-		int bot = top - 1;
+		var ret = new Vector2(-1, -1);
+		var top = _j + _i % 2;
+		var bot = top - 1;
 		
 		switch (direction)
 		{
-			case NBRS.TOP:
+			case Directions.Top:
 				ret.x = _i;
 				ret.y = _j + 1;
 				break;
-			case NBRS.TOPRIGHT:
+			case Directions.Topright:
 				ret.x = _i + 1;
 				ret.y = top;
 				break;
-			case NBRS.BOTRIGHT:
+			case Directions.Botright:
 				ret.x = _i + 1;
 				ret.y = bot;
 				break;
-			case NBRS.BOT:
+			case Directions.Bot:
 				ret.x = _i;
 				ret.y = _j - 1;
 				break;
-			case NBRS.BOTLEFT:
+			case Directions.Botleft:
 				ret.x = _i - 1;
 				ret.y = bot;
 				break;
-			case NBRS.TOPLEFT:
+			case Directions.Topleft:
 				ret.x = _i - 1;
 				ret.y = top;
 				break;
@@ -87,98 +89,127 @@ public class HexCell : MonoBehaviour
 
 		return ret;
 	}
-	
-	
-	protected NBRS desideNBR(HexCell cell)
+
+
+	private Directions DesideNbr(HexCell cell)
 	{
-		if (cell.getI() == _i)
+		if (cell.GetI() == _i)
 		{
-			int vDelta = cell.getJ() - _j;
+			int vDelta = cell.GetJ() - _j;
 			switch (vDelta)
 			{
 					case 1:
-						return NBRS.TOP;
-					case 2:
-						return NBRS.BOT;
+						return Directions.Top;
+					case -1:
+						return Directions.Bot;
 			}
 		}
 		
-		int top = _j + _i % 2;
-		int bot = top - 1;
-		if (cell.getJ() == top)
+		var top = _j + _i % 2;
+		var bot = top - 1;
+		int horDelta;
+		if (cell.GetJ() == top)
 		{
-			int horDelta = _i - cell.getI();
-			if (horDelta == -1)
-				return NBRS.TOPLEFT;
-			if (horDelta == 1)
-				return NBRS.TOPRIGHT;
-		
-			return NBRS.INVALID;
+			horDelta = _i - cell.GetI();
+			switch (horDelta)
+			{
+				case -1:
+					return Directions.Topleft;
+				case 1:
+					return Directions.Topright;
+			}
+
+			return Directions.Invalid;
 		}
 
-		if (cell.getJ() == bot)
+		if (cell.GetJ() != bot) return Directions.Invalid;
+
+	    horDelta = _i - cell.GetI();
+		switch (horDelta)
 		{
-			int horDelta = _i - cell.getI();
-			if (horDelta == -1)
-				return NBRS.BOTLEFT;
-			
-			if (horDelta == 1)
-				return NBRS.BOTRIGHT;
-			
-			return NBRS.INVALID;
+			case -1:
+				return Directions.Botleft;
+			case 1:
+				return Directions.Botright;
 		}
 
-		return NBRS.INVALID;
+		return Directions.Invalid;
+
 	}
 
-	protected int getI()
+	private int GetI()
 	{
 		return _i;
 	}
 
-	protected int getJ()
+	private int GetJ()
 	{
 		return _j;
 	}
 
-	protected void addNeighbour(HexCell neighbour)
+	protected void AddNeighbour(HexCell neighbour)
 	{
 		if (neighbour != null && !_neighbours.Contains(neighbour))
 		{
-			NBRS direction = desideNBR(neighbour);
-			if (direction < NBRS.SIZE)
+			Directions direction = DesideNbr(neighbour);
+			if (direction < Directions.Size)
 			{
 				_neighbours[(int) direction] = neighbour;
-				neighbour.addNeighbour(this);
+				neighbour.AddNeighbour(this);
 			}
 		}
-	}
+	}	
 
 	protected void remove(HexCell neighbour)
 	{
 		if (neighbour != null && _neighbours.Contains(neighbour))
 		{
-			NBRS direction = desideNBR(neighbour);
+			Directions direction = DesideNbr(neighbour);
 			_neighbours[(int) direction] = null;
 			neighbour.remove(this);
+			_fieldController.cellDestroyed(this);
 		}
 	}
 
-	public void addMonster()
+	public void AddSpacemnan(Spaceman spaceman)
 	{
-		
+		if (CanSpawnSpaceman())
+		{
+			Vector3 pos = new Vector3(0, 0, 0);
+			_spaceman = Instantiate(spaceman);
+			_spaceman.transform.SetParent(transform);
+			_spaceman.transform.localPosition = pos;
+			_fieldController.cellBonusSpawned(this);
+		}
 	}
 
-	public void addSpacemnan(Spaceman spaceman)
+	public bool CanSpawnSpaceman()
 	{
-		Vector3 pos = new Vector3(0, 0, 0);
-		_spaceman = Instantiate(spaceman);
-		_spaceman.transform.SetParent(transform);
-		_spaceman.transform.localPosition = pos;
+		return _spaceman == null && CanSpawnHamster();
 	}
 
-	public bool canSpawnSpaceman()
+	public void SpawnHamster(Hamster hamster)
 	{
-		return _spaceman == null;
+		_hamster = hamster;
+		hamster.setCell(this);
+		_fieldController.cellHamsterSpawend(this);
+	}
+
+	public void HamsterLeft()
+	{
+		_fieldController.cellAdded(this);
+		_hamster.transform.SetParent(null);
+		_hamster.setCell(null);
+		_hamster = null;
+	}
+	
+	public bool CanSpawnHamster()
+	{
+		return _hamster == null;
+	}
+
+	public HexCell GetNeighbour(Directions direction)
+	{
+		return _neighbours[(int) direction];
 	}
 }
