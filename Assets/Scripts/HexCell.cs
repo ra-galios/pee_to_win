@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using Slider = UnityEngine.Experimental.UIElements.Slider;
 
 public class HexCell : MonoBehaviour
 {
@@ -25,18 +26,45 @@ public class HexCell : MonoBehaviour
 
 		for (var d = 0; d < (int) Directions.Size; d++)
 		{
-			Vector2 nbrPos = DesideIj((Directions) d);
+			var nbrPos = DesideIj((Directions) d);
+			HexCell cell = null;
 			if (nbrPos.x >= 0 && nbrPos.x < field.GetLength(0))
 			{
 				if (nbrPos.y >= 0 && nbrPos.y < field.GetLength(1))
 				{
-					HexCell cell = field[(int) nbrPos.x, (int) nbrPos.y];
-					AddNeighbour(cell);
+					cell = field[(int) nbrPos.x, (int) nbrPos.y];
+					AddNeighbour(cell, (Directions) d);
 				}
+			}
+			
+			if (cell == null)
+			{
+				fieldController.СellBecameDirectionEdge(this, (Directions) d);
 			}
 		}
 		
 		transform.GetChild(0).gameObject.GetComponent<Text>().text = i + ";" + j;
+	}
+
+	private Directions GetOpositeDirection(Directions d)
+	{
+		switch (d)
+		{
+			case Directions.Top:
+				return Directions.Bot;
+			case Directions.Topleft:
+				return Directions.Botright;
+			case Directions.Topright:
+				return Directions.Botleft;
+			case Directions.Bot:
+				return Directions.Top;
+			case Directions.Botleft:
+				return Directions.Topright;
+			case Directions.Botright:
+				return Directions.Topleft;
+			default:
+				return Directions.Invalid;
+		}
 	}
 
 	private Vector2 DesideIj(Directions direction)
@@ -133,16 +161,15 @@ public class HexCell : MonoBehaviour
 		return _j;
 	}
 
-	protected void AddNeighbour(HexCell neighbour)
+	protected void AddNeighbour(HexCell neighbour, Directions direction)
 	{
 		if (neighbour != null && !_neighbours.Contains(neighbour))
 		{
-			Directions direction = DesideNbr(neighbour);
-			if (direction < Directions.Size)
-			{
-				_neighbours[(int) direction] = neighbour;
-				neighbour.AddNeighbour(this);
-			}
+			if(_neighbours[(int) direction] == null)
+				_fieldController.RemoveCellFromDirectionEdges(this, direction);
+				
+			_neighbours[(int) direction] = neighbour;
+			neighbour.AddNeighbour(this, GetOpositeDirection(direction));
 		}
 	}	
 
@@ -197,5 +224,15 @@ public class HexCell : MonoBehaviour
 	public HexCell GetNeighbour(Directions direction)
 	{
 		return _neighbours[(int) direction];
+	}
+
+	public void MoveHamster(Directions direction)
+	{
+		if (_hamster != null)
+			_hamster.Move(direction);
+
+		HexCell next = GetNeighbour(GetOpositeDirection(direction));
+		if(next != null)
+			next.MoveHamster(direction);
 	}
 }

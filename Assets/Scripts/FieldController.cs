@@ -26,6 +26,11 @@ public class FieldController : MonoBehaviour
 
 	// Use this for initialization
 	void Start () {
+		for (var i = 0; i < (int) HexCell.Directions.Size; i++)
+		{
+			directionEdgeCells[i] = new List<HexCell>();
+		}
+		
 		var cellRect = CellPrefab.GetComponent<RectTransform>();
 		_hexMetrics.InnerRadius = cellRect.rect.height / 2f;
 		_hexMetrics.OuterRadius = cellRect.rect.width / 2f;
@@ -62,7 +67,7 @@ public class FieldController : MonoBehaviour
 		}
 
 		var hamster = Instantiate(HamsterPrefab);
-		_field[5, 5].SpawnHamster(hamster);
+		_field[2, 2].SpawnHamster(hamster);
 	}
 
 	private HexCell CreateCell(Vector2 baseTransform, int i, int j)
@@ -111,6 +116,11 @@ public class FieldController : MonoBehaviour
 		directionEdgeCells[(int) direction].Add(cell);
 	}
 
+	public void RemoveCellFromDirectionEdges(HexCell cell, HexCell.Directions directions)
+	{
+		directionEdgeCells[(int) directions].Remove(cell);
+	}
+
 	public void СellBecameDestroyeble(HexCell cell)
 	{
 		_destroyebleCells.Add(cell);
@@ -124,5 +134,30 @@ public class FieldController : MonoBehaviour
 	public void CellBonusLeft(HexCell hexCell)
 	{
 		_cellsForBonus.Add(hexCell);
+	}
+	
+	// Update is called once per frame
+	void Update () {
+		if(Input.GetKeyUp(KeyCode.Q))
+			Move(HexCell.Directions.Topleft);
+		else if(Input.GetKeyUp(KeyCode.W))
+			Move(HexCell.Directions.Top);
+		else if (Input.GetKeyUp(KeyCode.E))
+			Move(HexCell.Directions.Topright);
+		else if (Input.GetKeyUp(KeyCode.A))
+			Move(HexCell.Directions.Botleft);
+		else if (Input.GetKeyUp(KeyCode.S))
+			Move(HexCell.Directions.Bot);
+		else if (Input.GetKeyUp(KeyCode.D))
+			Move(HexCell.Directions.Botright);
+	}
+	
+	private void Move(HexCell.Directions direction)
+	{
+		List<HexCell> directionalEdges = directionEdgeCells[(int) direction];
+		foreach (var cell in directionalEdges)
+		{
+			cell.MoveHamster(direction);
+		}
 	}
 }

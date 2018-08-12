@@ -3,22 +3,6 @@
 public class Hamster : MonoBehaviour
 {
 	private HexCell _hexCell;
-	
-	// Update is called once per frame
-	void Update () {
-		if(Input.GetKeyUp(KeyCode.Q))
-			Move(HexCell.Directions.Topright);
-		else if(Input.GetKeyUp(KeyCode.W))
-			Move(HexCell.Directions.Top);
-		else if (Input.GetKeyUp(KeyCode.E))
-			Move(HexCell.Directions.Topleft);
-		else if (Input.GetKeyUp(KeyCode.A))
-			Move(HexCell.Directions.Botright);
-		else if (Input.GetKeyUp(KeyCode.S))
-			Move(HexCell.Directions.Bot);
-		else if (Input.GetKeyUp(KeyCode.D))
-			Move(HexCell.Directions.Botleft);
-	}
 
 	public void SetCell(HexCell hexCell)
 	{
@@ -29,7 +13,7 @@ public class Hamster : MonoBehaviour
 		transform.localPosition = vector3;
 	}
 
-	private void Move(HexCell.Directions direction)
+	public void Move(HexCell.Directions direction)
 	{
 		if (_hexCell != null)
 		{
